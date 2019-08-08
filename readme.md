@@ -5,6 +5,7 @@
 - [Знакомство с MPS. Концепты](#concepts)
 - [Base Language](#base)
 - [Generator](#generator)
+- [Запуск генератора](#run)
 
 ![](./img/DSL_logo.png)
 ## [↑](#Home) <a name="intro"></a> Intro
@@ -253,12 +254,124 @@ private JTextField inputField = new JTextField();
 ```
 {
 	inputField.getDocument().addDocumentListener(listener);
-    add(new JLabel("Title"));
-    add(inputField);
+	add(new JLabel("Title"));
+	add(inputField);
 }
 ```
 В фигурные скобки мы поместили это для того, чтобы это воспринималось как единый блок кода. Тогда его можно поместить в цикл. Выделим скобку и через меню Intention (Alt + Enter) выберем Add Node Macro. Укажем цикл для **node.inputField**.
 Вместо "Title" укажем Property Macro для node.name.
 
-Далее переходим к описанию ссылок на "Field Declaration", в которых и хранятся поля.
+Далее переходим к описанию ссылок на "Field Declaration".
+Field Declaration - это такие описания, который связаны с самим Field и генерируются JetBrains MPS на основе этих Field. Зачем это нужно?
+Нужно это потому что с одной стороны у нас есть InputField, а с другой стороны у нас есть соответствующий ему JTextField, который MPS сгенерирetn по этому InputField. Нам нужно со ссылки на InputField сгенерировать ссылку на JTextField. Чтобы это сделать, нужен label для FieldDeclaration, чтобы по этому Label находить поле. Немного запутанно, но рано или поздно это станет нам понятно =)
 
+Для начала, нам нужно описать хранилище (storage) для сгенерированных FieldDeclaration. Label для inputField будет ссылаться на FieldDeclaration сгенерированный по InputField.
+Возвращаемся в main@generator и укажем **mapping labels** - это и есть наш storage.
+Встанем на ``` << ... >> ```, нажмём Enter и теперь заполним:
+
+![](./img/mappingLabels.png)
+
+Теперь, мы можем в нашем классе (где у нас написан код) указать label:
+
+![](./img/InputFieldDeclaration.png)
+
+Теперь нам нужно заменить ссылку на inputField на ссылку найденную через label. Для этого нам нужно использовать **"Reference Macro"**:
+
+![](./img/AddReferenceMacro.png)
+
+После этого у нас откроется окно инспектора. В нём нам нужно выбрать следующее:
+
+![](./img/GetOutputByLabel.png)
+
+Вместо ``choose mapping label`` указываем **InputFieldDeclaration**, а вместо ``inputNode`` вписываем **node**.
+Аналогичные действия повторяем для второй ссылки на inputField внизу макроса LOOP.
+Далее аналогично повторяет и для OutputField.
+Добавим блок кода:
+```java
+{
+  add(new JLabel("Output"));
+  add(outputField);
+}
+```
+Встаём на фигурные скобки и через меню Intention (Alt + Enter) добавляем Node Macro. Указываем макро ``$LOOP$`` и итерируемся по **node.outputField**.
+Повторяем для outputField, который во второй строке с add тоже, что делали для inputField.
+
+Теперь, нам остаётся только реализовать код, который обновляет результат расчёта.
+Нас интересует метод update. Добавим:
+
+![](./img/variableNodeMacro.png)
+
+Создаём LOOP макро. В обучающей статье умудрились немного пропустить это. Но т.к. сказано, что "int local variable for each input node", то наш LOOP будет по **node.inputField**.
+Также укажем каждой локальной переменной уникальное имя. Для этого выберем i и через контекстное Intention меню (Alt + Enter) создадим **Property Macro**.
+Укажем значение макро:
+``` genContext.unique name from ("i") in context
+
+Чтобы ссылаться на переменные нам нужны наши любимые label. Добавим к input и output лэйблам новый:
+
+![](./img/LocalVariableDeclaration.png)
+
+Теперь добавим новое макро к нашей локальной переменной:
+
+![](./img/NodeMacroInsideTheLoop.png)
+
+Называться макро должен ``$MAP_SRC$``. В **Mapping label** укажем **LocalVar**.
+Далее добавим Try-catch блок ниже:
+
+![](./img/TryCatchMPS.png)
+
+Перехватываться будем **NumberFormatException**, а в try блоке добавим:
+```java
+i = Integer.parseInt(inputField.getText());
+```
+Кроме того, выделив эту строку добавим ей Node Macro $LOOP$ через Intention меню.
+Итерируемся мы всё так же по **node.inputField**.
+
+Теперь, созаздим ссылку на label. Выбираем в try-catch блоке переменную i и через контекстное меню Intention выбираем **Add Reference Macro**, как мы делали до этого.
+Указываем в инспекторе statement для referent'а:
+``genContext.get output LocalVar for (node)``
+
+Аналогичную reference добавляет в этой же строчке для inputField, но в referent'е укажем не LocalVar, а **InputFieldDeclaration**.
+
+И теперь добавляем выходное поле ниже и делаем по нему Node Macro цикла $LOOP$, но уже по OutputValue:
+
+![](./img/OutputFieldLoop.png)
+
+Далее выбираем outputField и добавляем Reference Macro через Intention меню.
+В качестве referent указываем:
+``genContext.get output OutputFieldDeclaration for (node);``
+
+Далее заменим аргумент setText с null на ``"" + (null)``.
+Пусть не пугает null. Выберем его и добавим Node Macro со значеним ``$COPY_SRC$``.
+Это хитрый макро, который заменяет null на значение из инспектора.
+Добавим mapped node со значением **node.expression**.
+
+Осталось описать обработку InputFieldReference. Нам нужно заменить ссылку значением, полученным из JTextField соответствующему ссылающемуся на него inputField.
+
+The only thing that's left is handling the InputFieldReference. We don't have a generator for it yet. We need to replace the reference with the value retrieved from the JTextField corresponding to the refered input field.
+
+Соответствующая переменная i хранится в LocalVar label. Чтобы создать генератор для InputFieldReference вы должны определить **"Reduction Rule"**. Эти Rule применяются ко всем node, которые копируется во время генерации (например, в макро $COPY_SRC$).
+
+Создадим такое Reduction Rule в main@generator'е:
+
+![](./img/ReductionRules.png)
+
+Далее нам нужно указать context node, который будет содержать нашу local variable reference. Укажем **BlockStatement** в качестве content node. BlockStatement автоматически превращается в блок:
+```java
+{
+<no statement>
+}
+```
+Заполним блок следующим простым кодом:
+```java
+int i;
+i = 1 + i;
+```
+Эта ссылка на локальную переменную i (local variable i), которую мы будем использовать как результат in-line template. Поэтому, мы должны пометить её как template fragment.
+Выбираем здесь в выражении суммирования нашу переменную i, которая после плюса. Через контекстное меню Intention выбираем **"Create Template Fragment"**.
+Кроме того, делаем на ней же через контекстное меню Intention новый Reference Macro. В качестве referent указываем:
+``genContext.get output LocalVar for (node.field)``
+
+Осталось только пересобрать наш язык. Для этого нажимаем правой кнопкой мыши по нашему языку (помечен иконкой с буквой L) и выбираем **Rebuild Language**.
+
+## [↑](#Home) <a name="run"></a> Запуск генератора
+Мы проделали долги путь. И нам осталось только запустить и проверить, что всё работает правильно.

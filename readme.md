@@ -73,7 +73,7 @@ Calculator *-- "0..n" OutputField
 @enduml
 ```
 Вот так это выглядит визуально:
-[//]: # "Чтобы увидеть содержимое UML нужно открыть ссылку, но заменить png на uml"
+
 ![PlantUML model](http://plantuml.com/plantuml/png/SoWkIImgAStDuSfFoafDBb5mJin9Bir9BCalWebuvXMKbhXbfkQam4JyIqlWGbm83GfQkheAIWPwUdbAI9gmAq0nmo4rBmNe1000)
 
 Начнём с создания нашего главного, центрального, коренвого концепта - Калькулятор.

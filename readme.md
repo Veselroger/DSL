@@ -7,6 +7,7 @@
 - [Редактор концептов](#editor)
 - [Base Language](#base)
 - [Generator](#generator)
+- [Реализация Generator'а](#generatorImpl)
 - [Запуск генератора](#run)
 
 ![](./img/DSL_logo.png)
@@ -261,13 +262,37 @@ Calculator *-- "0..n" OutputField
 
 ![](./img/25_GeneratorResultsPreview.png)
 
-**TODO:**
-"[Running the code](https://www.jetbrains.com/help/mps/shapes-an-introductory-mps-tutorial.html#runningthecode)"
+Но просто класс - это не интересно. Давайте добавим main метод в наш код CalculatorImpl:
+```java
+public static void main(String[] args) {
+  System.out.println("Hello, World!");
+}
+```
+
+Теперь, нам нужно сделать так, чтобы генерируемый код можно было запустить в MPS. Для этого, согласно tutorial от MPS ("[Running the code](https://www.jetbrains.com/help/mps/shapes-an-introductory-mps-tutorial.html#runningthecode)") нам надо перейти в **Language Module Properties**.
+Выбираем для этого в дереве проекта модуль нашего языка (с иконкой L) и в контекстном меню выбираем **Module Properties**. Можно так же выбрать модуль и просто нажать **Alt+Enter**.
+
+На вкладке **dependencies** добавляем ещё одну зависимость:
+``jetbrains.mps.execution.util``
+Scope ей нужно выставить **Extends**:
+
+![](./img/26_LanguageDependencies.png)
+
+Теперь, осталось дело за малым. Т.к. наш класс CalculatorImpl получает в качестве input концепт калькулятора (Calculator), то именно он должен реализовывать интерфейс IMainClass, который и позволит там запускать код прямо из MPS.
+
+![](./img/27_IMainClass.png)
+
+После этого выполняем Rebuild для Language Module (с иконкой L) и Solution Module (с иконкой S). После этого в контекстном меню нашего калькулятора, который мы создали в Solution модуле появились 2 пункта: Run и Debug.
+Выполним **Run** и посмотрим, отработала ли наша задумка.
+Если всё сделано правильно, то JetBrains MPS покажет нам наше Hello World:
+
+![](./img/28_RunHelloWorld.png)
+
+А теперь приступаем к реализации нашего калькулятора, то есть к наполнению CalculatorImpl.
 
 
-**-----------------------------------------------------------**
-
-А теперь приступаем к реализации CalculatorImpl.
+## [↑](#Home) <a name="generatorImpl"></a> Реализация Generator'а
+Наконец мы можем приступить к реализации CalculatorImpl.
 Для начала, давайте воспользуемся такой штукой, как Property Macro.
 Выделим название класса CalculatorImpl, нажмём Alt+Enter и выберем **"Add property Macro"**. Имя класса изменится на ${CalculatorImpl}, а внизу в окне инспектора (Inspector) появится возможность настроить Property Macro:
 

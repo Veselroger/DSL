@@ -7,6 +7,7 @@
   </languages>
   <imports>
     <import index="tpck" ref="r:00000000-0000-4000-0000-011c89590288(jetbrains.mps.lang.core.structure)" implicit="true" />
+    <import index="4fqr" ref="r:fa713d69-08ea-4732-b1f2-cb07f9e103ef(jetbrains.mps.execution.util.structure)" implicit="true" />
     <import index="tpee" ref="r:00000000-0000-4000-0000-011c895902ca(jetbrains.mps.baseLanguage.structure)" implicit="true" />
   </imports>
   <registry>
@@ -58,6 +59,9 @@
       <property role="20kJfa" value="outputField" />
       <property role="20lbJX" value="0..n" />
       <ref role="20lvS9" node="6z5VcL7ruIY" resolve="OutputField" />
+    </node>
+    <node concept="PrWs8" id="1pgDWgFNRsR" role="PzmwI">
+      <ref role="PrY4T" to="4fqr:431DWIovi3l" resolve="IMainClass" />
     </node>
   </node>
   <node concept="1TIwiD" id="6z5VcL7ruIV">

@@ -8,6 +8,8 @@
 - [Base Language](#base)
 - [Generator](#generator)
 - [Реализация Generator'а](#generatorImpl)
+-- [Добавление Swing](#swing)
+-- [Использование макро](#macro)
 - [Запуск генератора](#run)
 
 ![](./img/DSL_logo.png)
@@ -293,39 +295,61 @@ Scope ей нужно выставить **Extends**:
 
 ## [↑](#Home) <a name="generatorImpl"></a> Реализация Generator'а
 Наконец мы можем приступить к реализации CalculatorImpl.
-Для начала, давайте воспользуемся такой штукой, как Property Macro.
-Выделим название класса CalculatorImpl, нажмём Alt+Enter и выберем **"Add property Macro"**. Имя класса изменится на ${CalculatorImpl}, а внизу в окне инспектора (Inspector) появится возможность настроить Property Macro:
 
-![](./img/PropertyMacro.png)
-
-Вместо no statements укажем node.name. Как указано в нашем CalculatorImpl, на вход мы получаем узел Calculator. Он является INamedConcept, т.е. у него есть name. Соответственно, его мы и получим как Property Macro.
-
-Далее, приступаем к написанию GUI. Для него мы воспользуемся Java Swing. Для этого нам понадобятся следующие зависимости:
+#### [↑](#Home) <a name="swing"></a> >> Добавление Swing
+Для начала, вспомним, что наш Java код - это приложение со Swing GUI.
+При использовании Java Swing наш проект начинает требовать следующие зависимости:
 - javax.swing@java_stub
 - javax.swing.event@java_stub
 - java.awt@java_stub
 - javax.swing.text@java_stub
 
-Чтобы их импортировать откроем контекстное меню для **main@generator** и выберем **"Model Properties"**. Зависимости - это не язык. Поэтому, воспользуемся вкладкой "Dependencies". Добавим там вышеуказанные зависимости.
+Чтобы их импортировать откроем контекстное меню для **main@generator** и выберем **"Model Properties"**. Зависимости - это не язык. Поэтому, воспользуемся вкладкой **"Dependencies"**. Добавим там вышеуказанные зависимости.
 
-Теперь мы можем отнаследовать наш класс CalculatorImpl от JFrame.
-Добавим метод update:
+Теперь, наш класс CalculatorImpl может наследоваться от JFrame:
+
+```java
+public class CalculatorImpl extends JFrame {
 ```
+
+Добавим метод update, который будет вызываться при обновлении полей:
+```java
 public void update() {
 }
 ```
-
-Добавим далее DocumentListener, который будет следить за изменением в полях ввода:
-```
+Добавим далее DocumentListener, который будет сообщать о изменениях в полях ввода:
+```java
 private DocumentListener listener = new DocumentListener() {
 	public void insertUpdate(DocumentEvent event) { update(); }
     public void removeUpdate(DocumentEvent event) { update(); }
     public void changeUpdate(DocumentEvent event) { update(); }
 }
 ```
-
-И теперь опишем сам main метод:
+Добавим описания полей ввода и вывода, добавим их следующим образом:
+```java
+private JTextField inputField = new JTextField();
+private JTextField outputField = new JTextField();
 ```
+Пусть вас не удивляет, что мы их объявляем один раз. Дальше поймём, почему так.
+
+Теперь реализуем конструктор калькулятора, который настроит наш JFrame:
+```java
+public CalculatorImpl() {
+	setTitle("Calculator");
+    setLayout(new GridLayout(0, 2));
+    {
+		inputField.getDocument().addDocumentListener(listener);
+		add(new JLabel("Title"));
+		add(inputField);
+	}
+    update();
+    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    pack();
+    setVisible(true);
+}
+```
+И теперь изменим наш main метод:
+```java
 public static void main(string[] args) {
 	SwingUtilities.invokeLater(new Runnable() {
     	public void run() {
@@ -334,48 +358,58 @@ public static void main(string[] args) {
     })
 }
 ```
+На этом основной код добавлен. Теперь, его нужно приправить "магией" макро.
 
-Теперь реализуем конструктор калькулятора, который настроит нам JFrame:
-```
-public CalculatorImpl() {
-	setTitle("Calculator");
-    setLayout(new GridLayout(0, 2));
-    update();
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    pack();
-    setVisible(true);
-}
-```
-Мы теперь умеем пользоваться макро. Хотим вместо Calculator использовать название калькулятора. Легко. Встаём внутрь кавычек, нажимаем Alt+Enter, Add Property Macro и выбираем node.name.
+#### [↑](#Home) <a name="macro"></a> >> Использование макро
+Как мы помним, в самом верху нашего CalculatorImpl написано, что это **root template**, то есть некий шаблон. Поэтому, генератор использует тот код, который мы написали, как шаблон. Генерацию по этому шаблону можно изменять, добавляя в этот код **macro**. Использовать их легко. Для их использования необходимо выбрать элемент, для которого нужно добавить макро, нажать **Alt + Enter** и в открывшемся **Intention Menu** выбрать нужный макро (т.к. макро бывают разные).
 
-Теперь, займёмся полями ввода. Добавим создание одного InputField:
-```
-private JTextField inputField = new JTextField();
-```
-Но у нас ведь должны быть inputField для каждого поля. Поэтому, выбираем inputField, нажимаем Alt+Enter и выбираем **"Add Node Macro"**:
+И для начала, давайте воспользуемся такой штукой, как **Property Macro**.
+Выделим название класса CalculatorImpl, нажмём Alt+Enter и выберем **"Add property Macro"**:
 
-![](./img/NodeMacro.png)
+![](./img/29_AddCalculatorImplPropertyMacro.png)
+
+Имя класса изменится на ``${CalculatorImpl}``, а внизу в окне инспектора (**Inspector**) появится возможность настроить Property Macro:
+
+![](./img/30_PropertyMacro.png)
+
+Вместо ``no statements`` укажем **node.name**. Мы добавляем property macro для node, который указан как input, т.е. Calculator. То есть **node.name** будет обращаться к параметру **name** нашего калькулятора Calculator. Он является **INamedConcept**, т.е. у него есть name. Соответственно, его мы и получим как Property Macro.
+
+Далее, обратим внимание на ``setTitle("Calculator");``.
+Не очень хорошо, что заголовок окна калькулятор. Было бы здорово, чтобы калькулятор назывался так, как мы это указали в Editor. Мы уже пользовались Property Macro. Давайте повторим.
+Встаём внутрь кавычек в методе setTitle, нажимаем Alt+Enter, выбираем в Intention меню пункт **Add Property Macro** и выбираем **node.name**.
+
+Теперь, обратим внимание на наши поля ввода и вывода. Как мы помним, у нас их может быть несколько. Их количество неизвестно на момент написания кода. Использование шаблона позволяет сделать динамическое объявление, с использованием макро **LOOP**.
+Поэтому, выбираем inputField, нажимаем Alt+Enter и в Intention меню выбираем **"Add Node Macro"**:
+
+![](./img/31_NodeMacro.png)
 
 Между двумя знаками доллара введём **LOOP**. Инспектор отобразит сразу настройки:
 
-![](./img/LoopMacroInspector.png)
+![](./img/32_LoopMacroInspector.png)
 
-Укажем **node.inputField**. Как мы помним, node для нас - концепт Calculator (указан у нас в input). А inputField указан в children:
+Укажем вместо ``no statement`` значение **node.inputField**. Как мы помним, node для нас - концепт Calculator (указан у нас в input). А inputField указан в блоке children (т.е. там хранится коллекция всех inputField'ов):
 
-![](./img/CalculatorInputFieldLoop.png)
+![](./img/33_CalculatorInputFieldLoop.png)
 
-Но это ещё не всё. Давайте добавим каждому полю уникальное имя. Для этого снова добавим Property Macro (Alt+Enter на inputField, "Add Property Macro"). Далее вместо "no statements" введём волшебную фразу:
-``genContext.unique name from ("inputField") in context(<no node>)``
-Аналогично необходимо поступить с outputField.
+Таким образом, генератор теперь, согласно макро, создаст для каждого экземпляра в inputField строку объявления inputField. Естественно, компиляция такого кода не сработает, т.е. все поля создадутся с одинаковым именем inputField. Исправим это.
 
-Вернёмся к CalculatorImpl конструктору и добавим туда перед update() :
-```
-{
-	inputField.getDocument().addDocumentListener(listener);
-	add(new JLabel("Title"));
-	add(inputField);
-}
-```
+Для создания уникального имени для каждого inputField снова добавим Property Macro (Alt+Enter на inputField, "Add Property Macro"). Тут нам поможет такая штука, как genContext или контекст генерации. Подробнее про правила генерации можно прочитать в документации к генератору: "[Generator Rule](https://www.jetbrains.com/help/mps/generator-language.html#generatorrule)".
+
+![](./img/34_PropertyMacroFromGenContext.png)
+
+Теперь выберем необходимую операцию. Нам нужно уникальное имя. Наберём **name** и нажмём для получения подсказки Ctrl + Space:
+
+![](./img/35_UniqueNameHint.png)
+
+Выбираем **unique name** и на месте ``<base name>`` указываем **"inputField"**. Base name указывает на то, что это основа имени, т.е. префикс, с которого имя будет называться. Таким образом генератор будет создавать имена вроде inputField_a, inputField_b и т.д.
+
+Аналогично необходимо поступить с outputField:
+
+![](./img/36_CalculatorImplFieldResults.png)
+
+**------------------------------**
+
+TODO: Переработка текста ниже
 В фигурные скобки мы поместили это для того, чтобы это воспринималось как единый блок кода. Тогда его можно поместить в цикл. Выделим скобку и через меню Intention (Alt + Enter) выберем Add Node Macro. Укажем цикл для **node.inputField**.
 Вместо "Title" укажем Property Macro для node.name.
 

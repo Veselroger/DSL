@@ -13,6 +13,8 @@
 -- [Field Declaration](#fielddecl)
 -- [Reduction Rules](#reduction)
 - [Scope](#scope)
+- [Type System Rule](#typesystem)
+
 
 ![](./img/DSL_logo.png)
 ## [↑](#Home) <a name="intro"></a> Intro
@@ -602,3 +604,38 @@ genContext.get output LocalVar for (node.field);
 Благодаря тому, что Calculator мы объявили имплементирующим IMainClass, то теперь в контекстном меню у нас есть возможность через Run и Debug запустить наш калькулятор, собранный по модели, которую мы описали на нашем новом DSL!
 
 ## [↑](#Home) <a name="scope"></a> Scope
+Стоит ещё помнить про такую вещь, как Scope или области.
+Если мы создадим другой калькулятор (т.е. новый root node калькулятора) в sandbox solution нашем, мы сможем обратиться к input полям другого калькулятора, что неправильно.
+
+Чтобы это исправить нам нужно создать для InputFieldReference свой scope. Чтобы это сделать нам нужно создать **Constraint**.
+Чтобы это сделать перейдём в концепт InputFieldReference и далее перейдём на вкладку **Constraints**.
+Кликнув на ``Click to create new aspect`` выбираем **Concept Constraint**.
+
+Ставим курсор перед **referent constraints**, нажимаем Ctrl + Space и выбираем link:
+
+![](./img/59_LinkDeclaration.png)
+
+Далее необходимо создать Scope для этой связи. Это позволит указать, каким образом необходимо определять элементы, на которые InputFieldReference может указывать:
+```
+scope inherited for InputField
+```
+После того, как мы указали, что Scope у InputFieldReference для поиска InputField наследуется, мы должны указать, что наш Calculator - **ScopeProvider**, т.е. провайдер этого Scope. Для этого концепт Calculator должен имплементировать интерфейс ScopeProvider.
+Таким образом Калькулятор наш будет предоставлять Scope всем своим вложенным
+InputFieldReferences (как мы помним, наша модель представляет собой AST).
+
+Калькулятор в нашем случае должен вернуть список всех его InputField, когда запрашивается Scope InputField'а. Для этого нужно переопределить **Behavior Aspect** калькулятора. Перейдём в концепт Calculator, далее на вкладку Behavior и нажимаем на **Click to create New Aspect**. Выбираем **Concept Behavior**.
+
+Чтобы переопределить метод концепта, нажимаем Ctrl + O и выбираем метод ``getScope``:
+
+![](./img/60_OverrideBehavior.png)
+
+После этого необходимо описать то, каким образом мы переопределяем поведение:
+
+![](./img/61_OverrideGetScopeMethod.png)
+
+Проверим, что всё сделано правильно.
+В главном меню выполняем **"Build → Rebuild Project"**.
+Если мы всё сделали правильно, то ошибок не возникнет, а поля в каждом калькуляторе доступны только внутри этого калькулятора.
+
+
+## [↑](#Home) <a name="typesystem"></a> Type System Rule

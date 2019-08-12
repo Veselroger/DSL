@@ -14,7 +14,7 @@
 -- [Reduction Rules](#reduction)
 - [Scope](#scope)
 - [Type System Rule](#typesystem)
-
+- [Итоги](#summary)
 
 ![](./img/DSL_logo.png)
 ## [↑](#Home) <a name="intro"></a> Intro
@@ -639,3 +639,48 @@ InputFieldReferences (как мы помним, наша модель предс
 
 
 ## [↑](#Home) <a name="typesystem"></a> Type System Rule
+Стоит разобраться с такой полезной штукой, как **Type System Rule**.
+Нужно это потому, что ранее мы для Output поля разрешили указать Expression.
+Но мы можем указать несколько бессмысленное выражение:
+
+![](./img/62_Ternary.png)
+
+Естественно, данное выражение не имеет смысла, т.к. width - не boolean выражение. Давайте сделаем так, чтобы нам про это сказал MPS.
+
+Перейдём в **InputFieldReference** и перейдём на вкладку **Typesystem**.
+Делаем мы это через InputFieldReference, потому что OutputField хранит Expression, который мы как раз и расширяем при помощи InputFieldReference.
+Создадим новое **InferenceRule**:
+
+![](./img/63_InferenceRule.png)
+
+Typesystem Engine оперирует двумя понятиями: equations (равенство) и inequations.
+Equations указывает, какие типы node должны быть равны. В Equations указывается, какие типы node должны быть подтипами друг друга.
+Добавим Equations, который указывает тип ссылки, который всегда int:
+Перейдём в блок **do** и наберём ``:==:``:
+
+![](./img/64_Equation.png)
+
+С левой стороны выбираем **typeOf**:
+
+![](./img/65_TypeOf.png)
+
+Укажем **typeof(inputFieldReference)**. В правой части выберем ``<quotation>``:
+
+![](./img/66_Quotation.png)
+
+**Quotation** - это специальная конструкция, которая позволяет получить node внутри quotation как значение. Это позволяет сократить затраты на создание node, т.к. ручное создание node со всеми нужными property, дочерними элементами и ссылками может привести к ошибкам. Да и радости тоже не добавляет.
+Укажем внутри треугольных скобок **IntegerType**:
+
+![](./img/67_RuleExample.png)
+
+Теперь, после того как мы сделаем Rebuild для нашего Language модуля нам MPS больше не даст указывать неправильный тип так, как мы делали это раньше:
+
+![](./img/68_TypeError.png)
+
+
+## [↑](#Home) <a name="summary"></a> Итоги
+Вот и выполнен наш Tutorial: "[MPS Calculator Language Tutorial](https://www.jetbrains.com/help/mps/mps-calculator-language-tutorial.html)". Данный Tutorial весьма увесист, но даёт неплохую вводную по части того, что такое JetBrain MPS и как оно работает.
+На Youtube есть видео написания калькулятора: "[The introductory Calculator Language Tutorial](https://www.youtube.com/watch?v=T1RErEvbgRc)".
+
+Как завершение данного Tutorial рекомендуется ознакомиться с супер докладом:
+[![Heavy Meta](./img/HeavyMeta.png)](https://www.youtube.com/watch?v=Opu8iKkS6lo)

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="MPSProject">
+    <projectModules>
+      <modulePath path="$USER_HOME$/MPSSamples.2019.1.5/sampleXML/languages/sampleXML/jetbrains.mps.sampleXML.mpl" folder="" />
+      <modulePath path="$PROJECT_DIR$/languages/generator_demo.demoLang1/generator_demo.demoLang1.mpl" folder="" />
+      <modulePath path="$PROJECT_DIR$/languages/generator_demo.demoLang2/generator_demo.demoLang2.mpl" folder="" />
+      <modulePath path="$PROJECT_DIR$/languages/generator_demo.demoLang3/generator_demo.demoLang3.mpl" folder="" />
+      <modulePath path="$PROJECT_DIR$/languages/generator_demo.demoLang4/generator_demo.demoLang4.mpl" folder="" />
+      <modulePath path="$PROJECT_DIR$/languages/generator_demo.demoLang5/generator_demo.demoLang5.mpl" folder="" />
+      <modulePath path="$PROJECT_DIR$/languages/generator_demo.demoLang6/generator_demo.demoLang6.mpl" folder="" />
+      <modulePath path="$PROJECT_DIR$/languages/generator_demo.demoLang7/generator_demo.demoLang7.mpl" folder="" />
+      <modulePath path="$PROJECT_DIR$/solutions/test_models/test_models.msd" folder="" />
+    </projectModules>
+  </component>
+</project>
